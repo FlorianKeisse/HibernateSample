@@ -47,6 +47,14 @@ public class ModuleDAOimp implements ModuleDAO {
     }
 
     @Override
+    public Set<Module> getAllModulesByCourse(long courseId) {
+        EntityManager em = emf.createEntityManager();
+        Query query = em.createQuery("SELECT m FROM Module m WHERE m.course.id=:courseID");
+        query.setParameter("courseID", courseId );
+        return new HashSet<>(query.getResultList());
+    }
+
+    @Override
     public void updateModule(Module module) {
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();

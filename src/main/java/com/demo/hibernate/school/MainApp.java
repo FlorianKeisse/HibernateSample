@@ -4,6 +4,7 @@ import com.demo.hibernate.school.model.Module;
 import com.demo.hibernate.school.model.*;
 import com.demo.hibernate.school.service.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Scanner;
 import java.util.Set;
@@ -11,7 +12,7 @@ import java.util.Set;
 public class MainApp {
 
     private Scanner scanner;
-    public static final String MENU = "What do you want to look at? \n1: Users \n2: People \n3: Courses \n4: Modules \n5: Exams \n0: End";
+    public static final String MENU = "What do you want to look at?\n1: Users\n2: People\n3: Courses\n4: Modules\n5: Exams\n6: Grades\n0: End";
     public static final String SUBMENU = "What do you want to look at? %n1: See all %n2: See id %n3: Add %n4: Update%n5: Delete %s %n0: End%n";
     public static final String ENTER_USERNAME = "Enter Login:";
     public static final String ENTER_PASSWORD = "Enter Password:";
@@ -21,6 +22,7 @@ public class MainApp {
     private ModuleService moduleService;
     private ExamService examService;
     private UserService userService;
+    private GradeService gradeService;
 
     public MainApp() {
         this.scanner = new Scanner(System.in);
@@ -29,6 +31,7 @@ public class MainApp {
         this.moduleService = new ModuleServiceImpl();
         this.examService = new ExamServiceImpl();
         this.userService = new UserServiceImpl();
+        this.gradeService = new GradeServiceImpl();
     }
 
     public static void main(String[] args) {
@@ -66,6 +69,9 @@ public class MainApp {
                     break;
                 case 5:
                     examMenu();
+                    break;
+                case 6:
+                    gradeMenu();
                     break;
                 case 0:
                     System.exit(0);
@@ -199,12 +205,12 @@ public class MainApp {
         if (person == null) {
             System.err.println("Person doesn't exist.");
         } else {
-           setPersonInfo(person);
+            setPersonInfo(person);
             personService.updatePerson(person);
         }
     }
 
-    private void setPersonInfo(Person person){
+    private void setPersonInfo(Person person) {
         System.out.println("Enter your first name:");
         String firstName = scanner.next();
         System.out.println("Enter your last name:");
@@ -266,7 +272,7 @@ public class MainApp {
         seeAllPeople();
         Person person = getPersonById();
 
-        person.setCourse(course);
+        person.setCourseActive(course);
         personService.updatePerson(person);
     }
 
@@ -297,10 +303,14 @@ public class MainApp {
     }
 
     private void setCourseInfo(Course course) {
+        System.out.println("Enter CourseName:");
         String name = scanner.next();
-        String description = scanner.nextLine();
-        String imgURL = scanner.nextLine();
-        String code = scanner.nextLine();
+        System.out.println("Enter Description");
+        String description = scanner.next();
+        System.out.println("Enter ImgURL:");
+        String imgURL = scanner.next();
+        System.out.println("Enter Code:");
+        String code = scanner.next();
 
         course.setName(name);
         course.setDescription(description);
@@ -309,6 +319,8 @@ public class MainApp {
     }
 
     private void deleteCourse() {
+        seeAllCourses();
+        System.out.println("Enter id to be deleted:");
         Course course = getCourseById();
         courseService.deleteCourse(course);
     }
@@ -409,7 +421,6 @@ public class MainApp {
             case 3:
                 createExam();
                 break;
-
             case 4:
                 updateExam();
                 break;
@@ -438,9 +449,24 @@ public class MainApp {
     private void createExam() {
         Exam exam = new Exam();
 
-        setExamInfo(exam);
+        System.out.println("Are you making a subExam? Y/N");
+        String answer = scanner.next().toUpperCase();
 
+        if (answer.equals("Y")){
+            seeAllExams();
+            System.out.println("Provide Parent ExamId");
+            Exam parentExam = getExamById();
+
+            if (parentExam!=null){
+                exam.setExamGroup(parentExam);
+                exam.setModule(parentExam.getModule());
+            }
+        }
+
+
+        setExamInfo(exam);
         examService.addExam(exam);
+
     }
 
     private void updateExam() {
@@ -475,6 +501,8 @@ public class MainApp {
     }
 
     private void deleteExam() {
+        seeAllExams();
+        System.out.println("Choose Exam you want to delete by id:");
         Exam exam = getExamById();
         if (exam == null)
             System.err.println("Exam doesn't exist.");
@@ -503,6 +531,107 @@ public class MainApp {
         moduleService.deleteModule(module);
     }
 
+    private void gradeMenu() {
+        System.out.printf(SUBMENU,"");
+        int subMenuChoice = scanner.nextInt();
+
+        switch (subMenuChoice) {
+            case 1:
+                seeAllGrades();
+                break;
+            case 2:
+                printGrade();
+                break;
+            case 3:
+                createGrades();
+                break;
+            case 4:
+                updateGrades();
+                break;
+            case 5:
+                deleteGrades();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void seeAllGrades() {
+        seeAllPeople();
+        System.out.println("Select a Person to see grades from");
+        Person person = getPersonById();
+        gradeService.getGradesByPerson(person).forEach(System.out::println);
+    }
+
+    private void printGrade() {
+        Grade grade = getGradeById();
+        System.out.println(grade);
+    }
+
+    private void createGrades() {
+        seeAllExams();
+        System.out.println("Select Exam to add a Grade.");
+        Exam exam = getExamById();
+
+        seeAllPeople();
+        System.out.println("Select a Person to add a Grade.");
+        Person person = getPersonById();
+
+
+        Grade grade = new Grade();
+        setGradeInfo(grade);
+        grade.setExam(exam);
+        grade.setPerson(person);
+
+        gradeService.addGrade(grade);
+    }
+
+    private void setGradeInfo(Grade grade) {
+        System.out.println("Set the grade:");
+        BigDecimal ultimateGrade = scanner.nextBigDecimal();
+        System.out.println("Enter the date of the grades:");
+        System.out.println("YEAR/MONTH/DAY");
+        int year = scanner.nextInt();
+        int month = scanner.nextInt();
+        int day = scanner.nextInt();
+
+        System.out.println("ABSENT? Y/N");
+        String yesOrNo = scanner.next().toUpperCase();
+        if (yesOrNo == "Y") {
+            grade.setAbsent(true);
+        } else if (yesOrNo == "N") {
+            grade.setAbsent(false);
+        } else {
+            grade.setAbsent(true);
+        }
+
+        LocalDate localDate = LocalDate.of(year, month, day);
+        System.out.println("Enter comment about Grade:");
+        String examComment = scanner.nextLine();
+        System.out.println("Enter InternalComments about Grade:");
+        String internalComment = scanner.nextLine();
+
+        grade.setGrade(ultimateGrade);
+        grade.setLocalDate(localDate);
+        grade.setComment(examComment);
+        grade.setInternalComment(internalComment);
+    }
+
+    private void updateGrades() {
+        Grade grade = getGradeById();
+        if (grade == null) {
+            System.err.println("Grade doesn't exist.");
+        } else {
+            setGradeInfo(grade);
+            gradeService.updateGrade(grade);
+        }
+    }
+
+    private void deleteGrades() {
+        Grade grade = getGradeById();
+        gradeService.deleteGrade(grade);
+    }
+
 
     private User getUserById() {
         String login = scanner.next();
@@ -527,6 +656,11 @@ public class MainApp {
     private Person getPersonById() {
         int id = scanner.nextInt();
         return personService.getPersonById(id);
+    }
+
+    private Grade getGradeById() {
+        Long id = scanner.nextLong();
+        return gradeService.getGradeById(id);
     }
 }
 

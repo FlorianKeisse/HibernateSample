@@ -12,6 +12,8 @@ public interface ModuleDAO {
     Module getModuleById(long id);
 
     Set<Module> getAllModules();
+    
+    Set<Module> getAllModulesByCourse(long courseId);
 
     void updateModule(Module module);
 

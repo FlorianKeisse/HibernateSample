@@ -12,6 +12,8 @@ public interface PersonDAO {
     Person getPersonById(int id);
 
     Set<Person> getAllPeople();
+    
+    Set<Person> getAllPeopleByCourse(long courseId);
 
     void updatePerson(Person person);
 

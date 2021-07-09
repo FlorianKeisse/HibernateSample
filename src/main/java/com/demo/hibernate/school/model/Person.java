@@ -1,13 +1,14 @@
 package com.demo.hibernate.school.model;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 public class Person {
     public enum Gender {
         MALE("MALE"),
         FEMALE("FEMALE");
-        
+
         private String gender;
 
         Gender(String gender) {
@@ -25,25 +26,45 @@ public class Person {
     private Integer id;
     private String firstName;
     private String lastName;
-    @ManyToOne(cascade = {
-            CascadeType.DETACH,
-            CascadeType.MERGE,
-            CascadeType.PERSIST,
-            CascadeType.REFRESH})
-
-    private Course course;
+    @ManyToOne(cascade = CascadeType.ALL)
+    private Course courseActive;
     @Transient
     private Gender gender;
+
+    @ManyToMany(targetEntity = Course.class,
+            cascade = {
+                    CascadeType.DETACH,
+                    CascadeType.MERGE,
+                    CascadeType.PERSIST,
+                    CascadeType.REFRESH})
+    private List<Course> courseHistory;
 
     public Person() {
     }
 
-    public Person(String firstName, String lastName, Gender gender, Course course) {
+    public Person(Integer id, String firstName, String lastName, Course courseActive, Gender gender, List<Course> courseHistory) {
+        this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.courseActive = courseActive;
         this.gender = gender;
-        this.course = course;
+        this.courseHistory = courseHistory;
+    }
 
+    public Course getCourseActive() {
+        return courseActive;
+    }
+
+    public void setCourseActive(Course courseActive) {
+        this.courseActive = courseActive;
+    }
+
+    public List<Course> getCourseHistory() {
+        return courseHistory;
+    }
+
+    public void setCourseHistory(List<Course> courseHistory) {
+        this.courseHistory = courseHistory;
     }
 
     public int getId() {
@@ -78,22 +99,15 @@ public class Person {
         this.gender = gender;
     }
 
-    public Course getCourse() {
-        return course;
-    }
-
-    public void setCourse(Course course) {
-        this.course = course;
-    }
-
     @Override
     public String toString() {
         return "Person{" +
                 "id=" + id +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
+                ", courseActive=" + courseActive +
                 ", gender=" + gender +
-                ", course=" + course +
+                ", courseHistory=" + courseHistory +
                 '}';
     }
 }

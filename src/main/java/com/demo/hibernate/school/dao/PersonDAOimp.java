@@ -48,6 +48,14 @@ public class PersonDAOimp implements  PersonDAO{
     }
 
     @Override
+    public Set<Person> getAllPeopleByCourse(long courseId) {
+                EntityManager em = emf.createEntityManager();
+                Query query = em.createQuery("SELECT p FROM Person p WHERE p.courseActive.id=:courseID");
+                query.setParameter("courseID", courseId);
+        return new HashSet<>(query.getResultList());
+    }
+
+    @Override
     public void updatePerson(Person person) {
         EntityManager em= emf.createEntityManager();
         em.getTransaction().begin();

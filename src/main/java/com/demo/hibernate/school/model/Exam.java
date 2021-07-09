@@ -2,6 +2,7 @@ package com.demo.hibernate.school.model;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 public class Exam {
@@ -23,6 +24,14 @@ public class Exam {
                     CascadeType.REFRESH})
     @JoinColumn(name = "module_id")
     private Module module;
+    @ManyToOne(targetEntity = Exam.class,
+            cascade = {
+                    CascadeType.DETACH,
+                    CascadeType.MERGE,
+                    CascadeType.REFRESH})
+    private Exam examGroup;
+    @OneToMany(mappedBy = "examGroup", cascade = CascadeType.ALL)
+    private List<Exam> subExams;
 
     public Exam() {
     }
@@ -34,6 +43,22 @@ public class Exam {
         this.weight = weight;
         this.total = total;
         this.module = module;
+    }
+
+    public Exam getExamGroup() {
+        return examGroup;
+    }
+
+    public void setExamGroup(Exam examGroup) {
+        this.examGroup = examGroup;
+    }
+
+    public List<Exam> getSubExams() {
+        return subExams;
+    }
+
+    public void setSubExams(List<Exam> subExams) {
+        this.subExams = subExams;
     }
 
     public long getId() {
@@ -94,13 +119,28 @@ public class Exam {
 
     @Override
     public String toString() {
-        return "Exam{" +
+        StringBuilder builder = new StringBuilder();
+        String info = "Exam{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", date=" + date +
                 ", weight=" + weight +
                 ", total=" + total +
-                '}';
+                "}\n";
+                
+        builder.append(info);
+        if (subExams != null && subExams.size() > 0) {
+            builder.append("Has following sub Exams:\n");
+//            subExams.stream()
+//                    .map(se -> se.getName() + "\n")
+//                    .forEach(builder::append);
+
+            for (Exam se : subExams) {
+                String str = se.getName() + "\n";
+                builder.append(str);
+            }
+        }
+        return builder.toString();
     }
 }
